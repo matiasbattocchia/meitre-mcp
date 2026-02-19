@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.dev.vars
+worker-configuration.d.ts
+.claude/
+package-lock.json
+mcp-publisher
+.mcpregistry_*
+meitre.ts
+toolsUtils.ts

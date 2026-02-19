@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.matiasbattocchia/meitre-mcp",
+  "description": "MCP server for Meitre restaurant reservations.",
+  "repository": {
+    "url": "https://github.com/matiasbattocchia/meitre-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://meitre.mcp.openbsp.dev/mcp",
+      "headers": [
+        {
+          "name": "username",
+          "description": "Meitre username",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "password",
+          "description": "Meitre password",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "restaurant",
+          "description": "Restaurant identifier (optional if the account has only one restaurant, use list_restaurants to find it)",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
