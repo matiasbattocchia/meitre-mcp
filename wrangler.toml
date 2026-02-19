@@ -5,4 +5,4 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "meitre-mcp-db"
-database_id = "placeholder"
+database_id = "1b13a3b8-7d65-4983-8d6f-7febd1c4a0ed"
