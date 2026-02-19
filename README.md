@@ -1,74 +1,45 @@
 # Meitre MCP Server
 
-MCP server for Meitre restaurant reservation API.
+A hosted [MCP](https://modelcontextprotocol.io) server that connects AI assistants to [Meitre](https://meitre.com), a restaurant reservation platform. It lets you check availability, search reservations, book, reschedule, and cancel — all through natural language.
 
-## Architecture
+## Setup
 
-```
-MCP Client                    MCP Server                     Meitre API
-(Claude)                      (Cloudflare Workers)           (api.meitre.com)
-    │                              │                              │
-    │── username/password/restaurant ▶│                              │
-    │                              │── Bearer token ──────────────▶│
-    │                              │◀─────── response ─────────────│
-    │◀────── tool result ──────────│                              │
-```
-
-## Design principles
-
-- **Stateless credentials** - Client sends user/pass on every request (plain headers)
-- **Cached tokens only** - Server caches bearer token, not credentials
-- **All tools exposed** - Tool selection is client's responsibility
-- **Simple first** - No rate limiting, no API keys, no OAuth dance
-
-## Authentication flow
-
-1. MCP client sends `username`, `password`, `restaurant` headers
-2. Server extracts credentials, hashes them for cache key
-3. Check D1 for cached bearer token (keyed by `hash(user+restaurant)`)
-4. If missing → call Meitre login, cache token
-5. Use bearer token for Meitre API
-6. On 401 → refresh token and retry
-
-## Token caching (D1)
-
-```sql
-CREATE TABLE meitre_tokens (
-  cache_key TEXT PRIMARY KEY,  -- hash(user+restaurant)
-  token TEXT NOT NULL,
-  created_at INTEGER NOT NULL
-);
-```
-
-No expiry tracking - just retry on 401 (lazy refresh).
-
-## MCP client config
+Add this to your MCP client config (Claude Desktop, Cursor, etc.):
 
 ```json
 {
   "mcpServers": {
     "meitre": {
-      "url": "https://meitre.mcp.example.com/mcp",
+      "url": "https://meitre.mcp.openbsp.dev/mcp",
       "headers": {
-        "username": "user@example.com",
-        "password": "secret",
-        "restaurant": "restaurant-id"
+        "username": "your-meitre-email",
+        "password": "your-meitre-password"
       }
     }
   }
 }
 ```
 
-## Reference files
+That's it. If your account has a single restaurant, it's detected automatically. For multi-restaurant accounts, add the `restaurant` header — use the `list_restaurants` tool to find the identifier.
 
-- `meitre.ts` - Original tool implementation from gori/supabase
-- `toolsUtils.ts` - Tool utilities
+## Tools
 
-## Differences from google-mcp
+| Tool | Description |
+|------|-------------|
+| `list_restaurants` | List restaurants accessible to your account |
+| `fetch_options` | Get areas, service types, and menus |
+| `fetch_dates` | Available dates for the next 15 days |
+| `fetch_timeslots` | Available times for a specific date |
+| `search_reservations` | Find reservations by phone number |
+| `book_reservation` | Book a new reservation |
+| `reschedule_reservation` | Reschedule an existing reservation |
+| `cancel_reservation` | Cancel a reservation |
 
-| Aspect | google-mcp | meitre-mcp |
-|--------|------------|------------|
-| Auth | OAuth flow → API key | Plain headers on every request |
-| Credential storage | Encrypted in D1 | None (only cached tokens) |
-| Setup | Web UI flow | Just configure headers |
-| Complexity | Higher | Lower |
+## Development
+
+```bash
+npm install
+npm run dev          # http://localhost:8787
+npm run typecheck    # Type check
+npm run deploy       # Deploy to Cloudflare
+```
