@@ -19,13 +19,15 @@ export interface MeitreRestaurant {
 export class MeitreAPI {
   private credentials: MeitreCredentials;
   private db: D1Database;
+  private encryptionKey: string;
   private cacheKey: string;
   private token: string | null = null;
   private restaurant: string | null;
 
-  constructor(credentials: MeitreCredentials, db: D1Database) {
+  constructor(credentials: MeitreCredentials, db: D1Database, encryptionKey: string) {
     this.credentials = credentials;
     this.db = db;
+    this.encryptionKey = encryptionKey;
     this.restaurant = credentials.restaurant ?? null;
     this.cacheKey = credentials.username;
   }
@@ -45,7 +47,7 @@ export class MeitreAPI {
     }
 
     const data = await res.json<{ token: string }>();
-    await setToken(this.db, this.cacheKey, data.token);
+    await setToken(this.db, this.cacheKey, data.token, this.encryptionKey);
     this.token = data.token;
     return data.token;
   }
@@ -53,7 +55,7 @@ export class MeitreAPI {
   private async getOrRefreshToken(): Promise<string> {
     if (this.token) return this.token;
 
-    const cached = await getToken(this.db, this.cacheKey);
+    const cached = await getToken(this.db, this.cacheKey, this.encryptionKey);
     if (cached) {
       this.token = cached;
       return cached;

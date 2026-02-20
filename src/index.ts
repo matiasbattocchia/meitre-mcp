@@ -3,7 +3,11 @@ import { cors } from 'hono/cors';
 import { MeitreAPI } from './lib/meitre.ts';
 import { handleMcpRequest, type McpHttpRequest } from './mcp/server.ts';
 
-const app = new Hono<{ Bindings: Env }>();
+type Bindings = Env & {
+  ENCRYPTION_KEY: string;
+};
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 // CORS for MCP clients
 app.use('/mcp', cors());
@@ -47,7 +51,7 @@ app.post('/mcp', async (c) => {
     );
   }
 
-  const api = new MeitreAPI({ username, password, restaurant: restaurant || undefined }, c.env.DB);
+  const api = new MeitreAPI({ username, password, restaurant: restaurant || undefined }, c.env.DB, c.env.ENCRYPTION_KEY);
   const response = await handleMcpRequest(request, { api, hasHeaderRestaurant: !!restaurant });
 
   return c.json(response);
